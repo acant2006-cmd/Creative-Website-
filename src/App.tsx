@@ -1,11 +1,15 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowUpRight, Menu, X, ChevronDown, Compass, RotateCcw } from 'lucide-react';
+import { ArrowUpRight, Menu, X, Compass, RotateCcw, Utensils, Dumbbell, CalendarDays, Check } from 'lucide-react';
 
 const VIDEO_SCRUB_SRC = `${import.meta.env.BASE_URL}doorway_scrub.mp4`;
 const VIDEO_FALLBACK_LOCAL = `${import.meta.env.BASE_URL}doorway.mp4`;
 
 export default function App() {
+  const [minutes, setMinutes] = useState(20);
+  const [goal, setGoal] = useState('Build consistency');
+  const [meal, setMeal] = useState('Family favorites');
+  const [completed, setCompleted] = useState<string[]>([]);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0); // 0.0 to 1.0
   const [videoDuration, setVideoDuration] = useState(10.0);
@@ -136,308 +140,87 @@ export default function App() {
     const targetScrollY = window.scrollY + rect.top + targetProgress * scrollableDistance;
     window.scrollTo({
       top: targetScrollY,
-      behavior: 'smooth',
+      behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth',
     });
   };
 
-  // "make all text appear on the last frame not on first frame"
-  // At 0% scroll (first frame): text is completely hidden (pure cinematic doorway)
-  // Approaching & passing the doorway (0.70 - 1.0): text smoothly emerges into view
-  // At 100% scroll (last frame): all text is fully visible at 100% opacity in pristine placement
-  const lastFrameProgress = Math.min(1, Math.max(0, (scrollProgress - 0.70) / 0.28));
-  // Smooth cubic ease-in-out curve
-  const textOpacity = lastFrameProgress * lastFrameProgress * (3 - 2 * lastFrameProgress);
-  const textTranslateY = (1 - textOpacity) * 28;
-
-  // Current visual phase description for HUD
-  const phaseLabel =
-    scrollProgress < 0.32
-      ? 'Approaching Doorway'
-      : scrollProgress < 0.76
-      ? 'Passing Through Portal'
-      : 'Nature Sanctuary';
-
+  // Keep the original scroll-to-video journey; reveal the destination at its end.
+  const textOpacity = Math.min(1, Math.max(0, (scrollProgress - 0.70) / 0.28));
+  const phaseLabel = scrollProgress < 0.32 ? 'Make room for you' : scrollProgress < 0.76 ? 'Find your rhythm' : 'Step into your routine';
+  const blocks = [
+    { id: 'prepare', time: `${Math.round(minutes * .2)} min`, title: 'Prepare', detail: 'A warm-up slot before your session.' },
+    { id: 'move', time: `${Math.round(minutes * .6)} min`, title: goal === 'Build strength' ? 'Strength focus' : goal === 'Make time to move' ? 'Movement break' : 'Your daily movement', detail: 'Space for a workout matched to your preferences.' },
+    { id: 'reset', time: `${minutes - Math.round(minutes * .2) - Math.round(minutes * .6)} min`, title: 'Reset', detail: 'Time to cool down and reflect on your day.' },
+  ];
+  const links = [['#approach', 'The approach'], ['#sample-day', 'Your sample day'], ['#questions', 'Good to know']];
   return (
-    <div
-      ref={containerRef}
-      id="scroll-container-track"
-      className="relative w-full h-[400vh] bg-black"
-    >
-      {/* Pinned Viewport: Stays fixed on screen as the user scrolls through the 400vh track */}
-      <div
-        id="pinned-viewport"
-        className="sticky top-0 h-screen w-full overflow-hidden flex flex-col justify-between select-none bg-black"
-      >
-        {/* Visual Animation Source: Video (No normal playback, timeline bound directly to scroll) */}
-        <div className="absolute inset-0 z-0 overflow-hidden bg-black">
-          <video
-            ref={videoRef}
-            muted
-            playsInline
-            autoPlay={false}
-            preload="auto"
-            onLoadedMetadata={handleLoadedMetadata}
-            onPlay={handlePlayAttempt}
-            onSeeked={handleSeeked}
-            className="absolute inset-0 w-full h-full object-cover opacity-100 pointer-events-none"
-            style={{
-              imageRendering: 'auto',
-            }}
-          >
-            <source src={VIDEO_SCRUB_SRC} type="video/mp4" />
-            <source src={VIDEO_FALLBACK_LOCAL} type="video/mp4" />
-          </video>
-        </div>
-
-        {/* Navigation Bar: Appears on the last frame together with all text */}
-        <nav
-          id="navbar"
-          style={{
-            opacity: textOpacity,
-            transform: `translateY(${-textTranslateY * 0.5}px)`,
-            pointerEvents: textOpacity < 0.1 ? 'none' : 'auto',
-          }}
-          className="relative z-20 w-full px-6 sm:px-10 md:px-16 lg:px-20 pt-7 md:pt-9 pb-4 flex items-center justify-between drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)] transition-all duration-150"
-        >
-          {/* Left: Brand Logo */}
-          <div className="flex items-center">
-            <button
-              onClick={() => scrollToProgress(0)}
-              id="brand-logo"
-              className="text-white text-2xl md:text-[26px] font-bold tracking-tight hover:opacity-90 transition-opacity text-left cursor-pointer"
-            >
-              Threshold
-            </button>
-          </div>
-
-          {/* Center: Navigation Links */}
-          <div id="nav-links" className="hidden md:flex items-center space-x-10 lg:space-x-12">
-            <a
-              href="#vision"
-              id="nav-vision"
-              className="text-white/90 hover:text-white text-sm lg:text-[15px] font-normal tracking-wide transition-colors duration-200"
-            >
-              Vision
-            </a>
-            <a
-              href="#resources"
-              id="nav-resources"
-              className="text-white/90 hover:text-white text-sm lg:text-[15px] font-normal tracking-wide transition-colors duration-200"
-            >
-              Resources
-            </a>
-            <a
-              href="#platform"
-              id="nav-platform"
-              className="text-white/90 hover:text-white text-sm lg:text-[15px] font-normal tracking-wide transition-colors duration-200"
-            >
-              Platform
-            </a>
-          </div>
-
-          {/* Right: Actions */}
-          <div id="nav-actions" className="hidden md:flex items-center space-x-6">
-            <a
-              href="#signin"
-              id="nav-signin"
-              className="text-white/90 hover:text-white text-sm lg:text-[15px] font-normal transition-colors duration-200"
-            >
-              Sign in
-            </a>
-            <a
-              href="#get-started"
-              id="nav-get-started"
-              className="px-4 py-1.5 rounded-[5px] border border-white/30 bg-black/20 backdrop-blur-md text-white text-sm lg:text-[15px] font-normal hover:bg-white/10 hover:border-white/50 active:scale-[0.98] transition-all duration-200 shadow-sm"
-            >
-              Get Started
-            </a>
-          </div>
-
-          {/* Mobile Hamburger Button */}
-          <div className="md:hidden flex items-center space-x-3">
-            <button
-              id="mobile-menu-toggle"
-              type="button"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 text-white/90 hover:text-white rounded-md hover:bg-black/30 transition-colors"
-              aria-label="Toggle Navigation Menu"
-            >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
-          </div>
-        </nav>
-
-        {/* Mobile Drawer Menu */}
-        <AnimatePresence>
-          {mobileMenuOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.25 }}
-              id="mobile-drawer"
-              className="md:hidden absolute top-20 inset-x-4 z-30 bg-black/95 backdrop-blur-2xl border border-white/15 rounded-xl p-6 shadow-2xl flex flex-col space-y-4"
-            >
-              <a
-                href="#vision"
-                onClick={() => setMobileMenuOpen(false)}
-                className="text-zinc-200 hover:text-white text-base py-2 border-b border-white/10"
-              >
-                Vision
-              </a>
-              <a
-                href="#resources"
-                onClick={() => setMobileMenuOpen(false)}
-                className="text-zinc-200 hover:text-white text-base py-2 border-b border-white/10"
-              >
-                Resources
-              </a>
-              <a
-                href="#platform"
-                onClick={() => setMobileMenuOpen(false)}
-                className="text-zinc-200 hover:text-white text-base py-2 border-b border-white/10"
-              >
-                Platform
-              </a>
-              <div className="pt-2 flex flex-col space-y-3">
-                <a
-                  href="#signin"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="text-center text-zinc-300 hover:text-white py-2"
-                >
-                  Sign in
-                </a>
-                <a
-                  href="#get-started"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="text-center py-2.5 rounded-md border border-white/25 bg-white/10 text-white font-medium hover:bg-white/20 transition-all"
-                >
-                  Get Started
-                </a>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Main Hero Content Section: Appears on the last frame in full clarity */}
-        <div
-          id="hero-content"
-          style={{
-            opacity: textOpacity,
-            transform: `translateY(${textTranslateY}px)`,
-            pointerEvents: textOpacity < 0.1 ? 'none' : 'auto',
-          }}
-          className="relative z-10 w-full px-6 sm:px-10 md:px-16 lg:px-20 pb-12 sm:pb-14 md:pb-16 lg:pb-20 pt-16 flex flex-col lg:flex-row items-start lg:items-end justify-between gap-10 lg:gap-16 drop-shadow-[0_2px_12px_rgba(0,0,0,0.85)] transition-all duration-150"
-        >
-          {/* Left Side: Headline & Subtitle */}
-          <div className="max-w-2xl xl:max-w-3xl flex flex-col">
-            <h1
-              id="hero-title"
-              className="text-white text-4xl sm:text-5xl md:text-6xl lg:text-[66px] xl:text-[72px] font-normal leading-[1.07] tracking-[-0.03em] drop-shadow-[0_3px_14px_rgba(0,0,0,0.9)]"
-            >
-              Step Inside the
-              <br />
-              World of Synthetic Minds
-            </h1>
-            <p
-              id="hero-subtitle"
-              className="mt-6 md:mt-8 text-zinc-100 text-sm sm:text-base md:text-[17px] font-normal leading-relaxed max-w-xl drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)]"
-            >
-              Discover the frontier where artificial intelligence begins to think, create
-              and evolve like never before.
-            </p>
-          </div>
-
-          {/* Right Side: Description & CTA Button */}
-          <div className="max-w-sm sm:max-w-md flex flex-col items-start lg:items-start">
-            <p
-              id="hero-right-description"
-              className="text-zinc-100 text-sm sm:text-base md:text-[15px] font-normal leading-relaxed drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)]"
-            >
-              Experience the next evolution of digital intelligence — built to empower innovation,
-              automation, and imagination.
-            </p>
-            <button
-              onClick={() => scrollToProgress(1)}
-              id="explore-cta-btn"
-              className="mt-6 group inline-flex items-center justify-center gap-2 bg-[#f05a22] hover:bg-[#e04f19] active:bg-[#c94313] text-white font-medium text-sm md:text-[15px] px-6 py-3 rounded-[3px] transition-all duration-200 shadow-xl shadow-orange-950/40 cursor-pointer"
-            >
-              <span>Explore the Future</span>
-              <ArrowUpRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-            </button>
-          </div>
-        </div>
-
-        {/* Scroll Journey HUD & Controller Bar */}
-        <div
-          id="scroll-journey-hud"
-          className="absolute bottom-4 right-6 sm:right-10 md:right-16 lg:right-20 z-30 flex items-center gap-3 bg-black/65 backdrop-blur-md px-4 py-2 rounded-full border border-white/20 text-xs text-white shadow-2xl transition-all"
-        >
-          {/* Phase Badge */}
-          <div className="flex items-center gap-1.5 text-[11px] font-medium tracking-wide">
-            <Compass className="w-3.5 h-3.5 text-orange-400 animate-spin" style={{ animationDuration: '8s' }} />
-            <span className="text-white/90 hidden sm:inline">{phaseLabel}</span>
-            <span className="text-orange-400 font-semibold">{Math.round(scrollProgress * 100)}%</span>
-          </div>
-
-          <div className="h-3 w-[1px] bg-white/20" />
-
-          {/* Quick Jump Buttons */}
-          <button
-            onClick={() => scrollToProgress(0)}
-            className={`px-2 py-0.5 rounded text-[11px] font-medium transition-colors ${
-              scrollProgress < 0.05 ? 'bg-white/25 text-white' : 'text-white/70 hover:text-white hover:bg-white/10'
-            }`}
-            title="Scroll to first frame"
-          >
-            0%
-          </button>
-          <button
-            onClick={() => scrollToProgress(0.5)}
-            className={`px-2 py-0.5 rounded text-[11px] font-medium transition-colors ${
-              scrollProgress >= 0.45 && scrollProgress <= 0.55 ? 'bg-white/25 text-white' : 'text-white/70 hover:text-white hover:bg-white/10'
-            }`}
-            title="Scroll to middle"
-          >
-            50%
-          </button>
-          <button
-            onClick={() => scrollToProgress(1)}
-            className={`px-2 py-0.5 rounded text-[11px] font-medium transition-colors ${
-              scrollProgress > 0.95 ? 'bg-white/25 text-white' : 'text-white/70 hover:text-white hover:bg-white/10'
-            }`}
-            title="Scroll to last frame (All text appears)"
-          >
-            100%
-          </button>
-
-          <div className="h-3 w-[1px] bg-white/20" />
-
-          {/* Reset to Start */}
-          <button
-            onClick={() => scrollToProgress(0)}
-            className="p-1 rounded-full hover:bg-white/15 text-white/80 hover:text-white transition-colors"
-            title="Reset to first frame"
-            aria-label="Reset scroll to first frame"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
-          </button>
-        </div>
-
-        {/* Minimal Non-Text Scroll Icon at Start: Fades out completely as soon as user begins scrolling */}
-        {scrollProgress < 0.05 && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.8 }}
-            exit={{ opacity: 0 }}
-            className="absolute bottom-6 left-6 sm:left-10 md:left-16 lg:left-20 z-20 flex items-center justify-center pointer-events-none drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]"
-          >
-            <div className="w-5 h-8 rounded-full border border-white/40 flex items-start justify-center p-1">
-              <div className="w-1 h-2 bg-orange-400 rounded-full animate-bounce" />
+    <>
+      <header className="site-header">
+        <a href="#" className="brand" aria-label="Threshold Fit home">Threshold<span>Fit</span><span className="brand-dot" /></a>
+        <nav className="desktop-nav" aria-label="Main navigation">{links.map(([href, label]) => <a key={href} href={href}>{label}</a>)}</nav>
+        <a className="nav-cta" href="#sample-day">Try the concept <ArrowUpRight size={16} /></a>
+        <button className="menu-toggle" aria-label="Toggle navigation" aria-expanded={mobileMenuOpen} aria-controls="mobile-drawer" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>{mobileMenuOpen ? <X /> : <Menu />}</button>
+        <AnimatePresence>{mobileMenuOpen && <motion.nav id="mobile-drawer" aria-label="Mobile navigation" initial={{opacity:0,y:-10}} animate={{opacity:1,y:0}} exit={{opacity:0,y:-10}}>{links.map(([href,label]) => <a key={href} href={href} onClick={() => setMobileMenuOpen(false)}>{label}</a>)}</motion.nav>}</AnimatePresence>
+      </header>
+      <main>
+        <div ref={containerRef} id="scroll-container-track" className="journey-track">
+          <div id="pinned-viewport" className="journey-viewport">
+            <video ref={videoRef} muted playsInline preload="auto" onLoadedMetadata={handleLoadedMetadata} onPlay={handlePlayAttempt} onSeeked={handleSeeked} className="journey-video" aria-label="A doorway opens from a dark meadow into a bright landscape as you scroll">
+              <source src={VIDEO_SCRUB_SRC} type="video/mp4" /><source src={VIDEO_FALLBACK_LOCAL} type="video/mp4" />
+            </video>
+            <div className="video-shade" />
+            <div className="opening-copy" style={{opacity:Math.max(0, 1 - scrollProgress * 4),visibility:scrollProgress > .26 ? 'hidden' : 'visible'}}>
+              <p className="eyebrow">FITNESS, WITH A WAY FORWARD</p>
+              <h1>A busy life.<br />A little room<br /><em>for you.</em></h1>
+              <p>Meals, movement, and motivation.<br />One simpler path through it all.</p>
+              <a href="#sample-day" className="button">Find your rhythm <ArrowUpRight size={18} /></a>
             </div>
-          </motion.div>
-        )}
-      </div>
-    </div>
+            <div id="hero-content" className="destination-copy" style={{opacity:textOpacity,visibility:textOpacity === 0 ? 'hidden' : 'visible'}}>
+              <p className="eyebrow">MEET THRESHOLD FIT</p>
+              <h2>Your goals.<br /><em>Your real life.</em></h2>
+              <p>An AI fitness companion concept for busy adults. A plan for what to eat, when to move, and how to keep going—all in one place.</p>
+              <a href="#sample-day" className="button">Explore a sample day <ArrowUpRight size={18} /></a>
+            </div>
+            <div className="journey-footer">
+              <span className="scroll-hint">SCROLL TO STEP THROUGH <span>↓</span></span>
+              <div id="scroll-journey-hud" className="journey-hud"><Compass size={15} /><span className="phase-label">{phaseLabel}</span><span className="progress">{Math.round(scrollProgress * 100)}%</span>
+                {[0,.5,1].map(n => <button key={n} onClick={() => scrollToProgress(n)} aria-label={`Jump to ${n * 100}% of the journey`}>{n * 100}%</button>)}
+                <button onClick={() => scrollToProgress(0)} aria-label="Reset scroll to first frame"><RotateCcw size={14} /></button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <section id="approach" className="section approach">
+          <div className="section-heading"><p className="eyebrow">LESS GUESSWORK. MORE LIVING.</p><h2>Fitness shouldn't be<br />another full-time job.</h2><p>Wondering what to eat, which workout to choose, or where to start? Our idea is simple: bring the pieces together, around the life you already have.</p></div>
+          <div className="feature-grid">
+            <article><Utensils /><span className="card-number">01 / NOURISH</span><h3>Your food. A clearer plan.</h3><p>Meal planning designed around familiar foods, preferences, and family routines. Less starting over. More working with what you love.</p></article>
+            <article><Dumbbell /><span className="card-number">02 / MOVE</span><h3>A place for every step.</h3><p>Warm-ups, workouts, and stretches in one guided routine. A proposed AI companion to help take the uncertainty out of getting started.</p></article>
+            <article><CalendarDays /><span className="card-number">03 / KEEP GOING</span><h3>Built around your day.</h3><p>Flexible plans, simple tracking, and reminders on your terms. Encouragement that makes room for busy weeks and fresh starts.</p></article>
+          </div>
+        </section>
+        <section id="sample-day" className="section demo-section">
+          <div className="demo-intro"><p className="eyebrow">MAKE SPACE. SEE WHAT FITS.</p><h2>A little structure.<br /><em>A lot less guessing.</em></h2><p>Choose a focus and a time window to explore how a day could come together.</p><div className="concept-note">Interactive concept preview · Illustrative scheduling only. These examples are not AI-generated or personalized exercise or nutrition advice.</div></div>
+          <div className="planner">
+            <div className="planner-heading"><span className="eyebrow">YOUR SAMPLE DAY</span><span className="preview-badge">CONCEPT</span></div>
+            <label htmlFor="goal">What would you like to focus on?</label><select id="goal" value={goal} onChange={e => {setGoal(e.target.value);setCompleted([]);}}>{['Build consistency','Build strength','Make time to move'].map(g => <option key={g}>{g}</option>)}</select>
+            <fieldset><legend>How much time can you set aside?</legend><div className="time-options">{[10,20,30].map(n => <button key={n} aria-pressed={minutes === n} onClick={() => {setMinutes(n);setCompleted([]);}}>{n} min</button>)}</div></fieldset>
+            <label htmlFor="meal">What should meals fit around?</label><select id="meal" value={meal} onChange={e => setMeal(e.target.value)}>{['Family favorites','Quick assembly','Preparing ahead'].map(m => <option key={m}>{m}</option>)}</select>
+            <div className="sample-result" aria-live="polite"><div className="result-title"><h3>{minutes} minutes for you</h3><span>{completed.length}/3 explored</span></div>
+              {blocks.map(block => <button className={`timeline-row ${completed.includes(block.id) ? 'checked' : ''}`} key={block.id} aria-pressed={completed.includes(block.id)} onClick={() => setCompleted(prev => prev.includes(block.id) ? prev.filter(id => id !== block.id) : [...prev,block.id])}><span className="check-box">{completed.includes(block.id) && <Check size={14} />}</span><span><strong>{block.title}</strong><small>{block.detail}</small></span><span className="time-label">{block.time}</span></button>)}
+              <div className="meal-note"><Utensils size={18} /><p><strong>{meal}</strong><br />{meal === 'Family favorites' ? 'Make room for a shared meal using foods your household already enjoys.' : meal === 'Quick assembly' ? 'Reserve a meal break for something simple to put together.' : 'Set aside a planning moment for meals you can prepare ahead.'}</p></div>
+            </div>
+            <p className="planner-footnote">Tap each step to try the checklist. Your selections stay in this page and reset when you reload.</p>
+          </div>
+        </section>
+        <section id="questions" className="section questions"><div><p className="eyebrow">A CLEAR START</p><h2>Good to know.</h2><p>One app is the vision.<br />Everyday simplicity is the goal.</p></div><div className="faq-list">
+          <details open><summary>Who is Threshold Fit for?</summary><p>Busy adults who want a clearer fitness routine and less time spent piecing together meals, movement, and reminders across different apps.</p></details>
+          <details><summary>Can I download the app today?</summary><p>Not yet. This website presents a marketing venture concept. The interactive sample demonstrates the idea; a working AI coach and downloadable app are not available here.</p></details>
+          <details><summary>How would a subscription work?</summary><p>The proposed model is one subscription for meal planning, exercise guidance, reminders, and tracking. Pricing and launch details have not been set. This preview requires no payment or account.</p></details>
+          <details><summary>What matters most as the idea develops?</summary><p>Easy logging, dependable performance, clear pricing, and guidance people can trust. Nutrition data quality and appropriate professional input are priorities to validate as the product develops.</p></details>
+        </div></section>
+        <section className="closing"><p className="eyebrow">YOUR NEXT STEP CAN BE SMALL.</p><h2>Make room for a routine<br />that makes room for you.</h2><a className="button" href="#sample-day">Try your sample day <ArrowUpRight size={18} /></a></section>
+      </main>
+      <footer className="site-footer"><a className="brand" href="#">Threshold<span>Fit</span></a><p>A fitness startup concept for real life.</p><a href="#questions">About this concept ↑</a></footer>
+    </>
   );
 }
