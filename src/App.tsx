@@ -15,6 +15,28 @@ export default function App() {
   const [videoDuration, setVideoDuration] = useState(10.0);
   const [isVideoReady, setIsVideoReady] = useState(false);
 
+  const menuToggleRef = useRef<HTMLButtonElement>(null);
+
+  // Dismiss the mobile drawer on Escape or when moving to the desktop layout.
+  useEffect(() => {
+    const desktop = window.matchMedia('(min-width: 801px)');
+    const closeOnDesktop = () => {
+      if (desktop.matches) setMobileMenuOpen(false);
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && mobileMenuOpen) {
+        setMobileMenuOpen(false);
+        menuToggleRef.current?.focus();
+      }
+    };
+    desktop.addEventListener('change', closeOnDesktop);
+    window.addEventListener('keydown', closeOnEscape);
+    return () => {
+      desktop.removeEventListener('change', closeOnDesktop);
+      window.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [mobileMenuOpen]);
+
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const targetTimeRef = useRef(0);
@@ -25,7 +47,7 @@ export default function App() {
   const handleScroll = useCallback(() => {
     if (!containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
-    const scrollableDistance = rect.height - window.innerHeight;
+    const scrollableDistance = rect.height - (containerRef.current.firstElementChild?.clientHeight || window.innerHeight);
     if (scrollableDistance <= 0) return;
 
     // Current scrolled amount inside the container
@@ -136,7 +158,7 @@ export default function App() {
   const scrollToProgress = (targetProgress: number) => {
     if (!containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
-    const scrollableDistance = rect.height - window.innerHeight;
+    const scrollableDistance = rect.height - (containerRef.current.firstElementChild?.clientHeight || window.innerHeight);
     const targetScrollY = window.scrollY + rect.top + targetProgress * scrollableDistance;
     window.scrollTo({
       top: targetScrollY,
@@ -159,7 +181,7 @@ export default function App() {
         <a href="#" className="brand" aria-label="Threshold Fit home">Threshold<span>Fit</span><span className="brand-dot" /></a>
         <nav className="desktop-nav" aria-label="Main navigation">{links.map(([href, label]) => <a key={href} href={href}>{label}</a>)}</nav>
         <a className="nav-cta" href="#sample-day">Try the concept <ArrowUpRight size={16} /></a>
-        <button className="menu-toggle" aria-label="Toggle navigation" aria-expanded={mobileMenuOpen} aria-controls="mobile-drawer" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>{mobileMenuOpen ? <X /> : <Menu />}</button>
+        <button ref={menuToggleRef} className="menu-toggle" aria-label="Toggle navigation" aria-expanded={mobileMenuOpen} aria-controls="mobile-drawer" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>{mobileMenuOpen ? <X /> : <Menu />}</button>
         <AnimatePresence>{mobileMenuOpen && <motion.nav id="mobile-drawer" aria-label="Mobile navigation" initial={{opacity:0,y:-10}} animate={{opacity:1,y:0}} exit={{opacity:0,y:-10}}>{links.map(([href,label]) => <a key={href} href={href} onClick={() => setMobileMenuOpen(false)}>{label}</a>)}</motion.nav>}</AnimatePresence>
       </header>
       <main>
@@ -169,7 +191,7 @@ export default function App() {
               <source src={VIDEO_SCRUB_SRC} type="video/mp4" /><source src={VIDEO_FALLBACK_LOCAL} type="video/mp4" />
             </video>
             <div className="video-shade" />
-            <div className="opening-copy" style={{opacity:Math.max(0, 1 - scrollProgress * 4),visibility:scrollProgress > .26 ? 'hidden' : 'visible'}}>
+            <div className="opening-copy" style={{opacity:Math.max(0, 1 - scrollProgress * 4),visibility:scrollProgress >= .25 ? 'hidden' : 'visible'}}>
               <p className="eyebrow">FITNESS, WITH A WAY FORWARD</p>
               <h1>A busy life.<br />A little room<br /><em>for you.</em></h1>
               <p>Meals, movement, and motivation.<br />One simpler path through it all.</p>

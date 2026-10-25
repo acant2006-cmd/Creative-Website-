@@ -99,7 +99,7 @@ a:focus-visible,button:focus-visible,select:focus-visible,summary:focus-visible 
   position:sticky;
   top:0;
   height:100svh;
-  min-height:540px;
+  min-height:0;
   overflow:hidden
 }
 .journey-video,.video-shade {
@@ -609,4 +609,26 @@ h1 {
   transition-duration:.01ms!important
 }
 
+}
+
+/* Prevent an exiting mobile drawer from covering desktop navigation. */
+@media (min-width: 801px) {
+  #mobile-drawer { display: none; }
+}
+/* Keep the hero and its controls inside short and landscape viewports. */
+@media (max-height: 600px) {
+  .site-header { padding-top: 14px; padding-bottom: 14px; }
+  .opening-copy { top: 85px; transform: none; }
+  .opening-copy h1 { font-size: 32px; margin-bottom: 10px; }
+  .opening-copy .eyebrow, .destination-copy .eyebrow { margin-bottom: 8px; font-size: 8px; }
+  .opening-copy > p:not(.eyebrow), .destination-copy > p:not(.eyebrow) { font-size: 11px; line-height: 1.5; margin-bottom: 12px; }
+  .opening-copy .button, .destination-copy .button { padding: 11px 16px; }
+  .destination-copy { top: 85px; bottom: auto; }
+  .destination-copy h2 { font-size: 36px; margin-bottom: 12px; }
+  .journey-footer { bottom: 10px; flex-direction: row; align-items: center; }
+  .scroll-hint { display: none; }
+  .journey-hud { margin-left: auto; }
+}
+@media (max-width: 800px) {
+  .planner select { font-size: 16px; }
 }
