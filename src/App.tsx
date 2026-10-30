@@ -17,6 +17,15 @@ export default function App() {
 
   const menuToggleRef = useRef<HTMLButtonElement>(null);
 
+  // Cross-page anchors must wait for React to mount their destination.
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      const destination = document.getElementById(window.location.hash.slice(1));
+      destination?.scrollIntoView({ behavior: 'instant' });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, []);
+
   // Dismiss the mobile drawer on Escape or when moving to the desktop layout.
   useEffect(() => {
     const desktop = window.matchMedia('(min-width: 801px)');
@@ -174,7 +183,7 @@ export default function App() {
     { id: 'move', time: `${Math.round(minutes * .6)} min`, title: goal === 'Build strength' ? 'Strength focus' : goal === 'Make time to move' ? 'Movement break' : 'Your daily movement', detail: 'Space for a workout matched to your preferences.' },
     { id: 'reset', time: `${minutes - Math.round(minutes * .2) - Math.round(minutes * .6)} min`, title: 'Reset', detail: 'Time to cool down and reflect on your day.' },
   ];
-  const links = [['#approach', 'The approach'], ['#sample-day', 'Your sample day'], ['#questions', 'Good to know']];
+  const links = [['#approach', 'The approach'], ['#sample-day', 'Your sample day'], ['#questions', 'Good to know'], ['pricing.html', 'Membership']];
   return (
     <>
       <header className="site-header">
@@ -237,9 +246,10 @@ export default function App() {
         <section id="questions" className="section questions"><div><p className="eyebrow">A CLEAR START</p><h2>Good to know.</h2><p>One app is the vision.<br />Everyday simplicity is the goal.</p></div><div className="faq-list">
           <details open><summary>Who is Threshold Fit for?</summary><p>Busy adults who want a clearer fitness routine and less time spent piecing together meals, movement, and reminders across different apps.</p></details>
           <details><summary>Can I download the app today?</summary><p>Not yet. This website presents a marketing venture concept. The interactive sample demonstrates the idea; a working AI coach and downloadable app are not available here.</p></details>
-          <details><summary>How would a subscription work?</summary><p>The proposed model is one subscription for meal planning, exercise guidance, reminders, and tracking. Pricing and launch details have not been set. This preview requires no payment or account.</p></details>
+          <details><summary>How would a subscription work?</summary><p>The proposed model is one subscription for meal planning, exercise guidance, reminders, and tracking. The confirmed price is $14.99 USD per month. Launch details are still to come. This preview requires no payment or account. <a className="text-link" href="pricing.html">Explore the membership →</a></p></details>
           <details><summary>What matters most as the idea develops?</summary><p>Easy logging, dependable performance, clear pricing, and guidance people can trust. Nutrition data quality and appropriate professional input are priorities to validate as the product develops.</p></details>
         </div></section>
+        <section className="section membership-teaser" aria-labelledby="membership-heading"><div><p className="eyebrow">ONE MEMBERSHIP. A CLEARER ROUTINE.</p><h2 id="membership-heading">A little room.<br /><em>All in one place.</em></h2><p>Explore the proposed Threshold Fit Membership: workouts, meals, warm-ups, stretches, reminders, and schedule-aware guidance.</p></div><div><p className="teaser-price">$14.99 <span>USD / month</span></p><p>App concept · Not yet available</p><a className="button" href="pricing.html">Explore the membership <ArrowUpRight size={18} /></a></div></section>
         <section className="closing"><p className="eyebrow">YOUR NEXT STEP CAN BE SMALL.</p><h2>Make room for a routine<br />that makes room for you.</h2><a className="button" href="#sample-day">Try your sample day <ArrowUpRight size={18} /></a></section>
       </main>
       <footer className="site-footer"><a className="brand" href="#">Threshold<span>Fit</span></a><p>A fitness startup concept for real life.</p><a href="#questions">About this concept ↑</a></footer>

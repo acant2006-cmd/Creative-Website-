@@ -632,3 +632,10 @@ h1 {
 @media (max-width: 800px) {
   .planner select { font-size: 16px; }
 }
+
+.membership-teaser { display:grid; grid-template-columns:1.2fr 1fr; align-items:center; gap:10%; background:#172a20; }
+.membership-teaser .teaser-price { font-size:46px; color:#f7f5eb; letter-spacing:-2px; line-height:1.2; margin-bottom:12px; }
+.teaser-price span { font-size:13px; color:var(--muted); letter-spacing:0; white-space:nowrap; }
+.membership-teaser .button { margin-top:10px; }
+.faq-list .text-link { color:var(--lime); text-decoration:underline; text-underline-offset:4px; }
+@media(max-width:800px) { .membership-teaser { grid-template-columns:1fr; gap:24px; } }
