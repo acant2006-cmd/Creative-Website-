@@ -20,6 +20,13 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Build and validate Mission 2 studio
+        run: |
+          npx --yes pnpm@11.25.0 --dir mission-2-studio install --frozen-lockfile --ignore-scripts
+          npx --yes pnpm@11.25.0 --dir mission-2-studio build
+          node mission-2-studio/validate-glb.mjs mission-2-studio/public/confirmed/model.glb
+          mkdir -p public/venture-studio
+          cp -R mission-2-studio/dist/. public/venture-studio/
       - run: npm run lint
       - run: npm run build
       - uses: actions/configure-pages@v5

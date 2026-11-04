@@ -1,0 +1,19 @@
+{
+  "name": "venture-3d-studio",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 4190",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1 --port 4190"
+  },
+  "dependencies": {
+    "fflate": "0.8.2",
+    "three": "0.180.0"
+  },
+  "devDependencies": {
+    "gltf-validator": "2.0.0-dev.3.10",
+    "vite": "6.1.0"
+  }
+}

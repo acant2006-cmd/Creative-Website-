@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Venture 3D confirmed model manifest",
+  "type": "object",
+  "required": ["schemaVersion", "handoffVersion", "projectName", "modelName", "modelType", "confirmedAt", "dimensions", "camera", "environment", "description", "files", "integrity"],
+  "properties": {
+    "schemaVersion": {"const": "1.0.0"},
+    "handoffVersion": {"type": "integer", "minimum": 1},
+    "projectName": {"type": "string", "minLength": 1},
+    "modelName": {"type": "string", "minLength": 1},
+    "modelType": {"type": "string"},
+    "confirmedAt": {"type": "string", "format": "date-time"},
+    "dimensions": {"type": "object", "required": ["width", "height", "depth", "units", "axis", "front"], "properties": {"width": {"type": "number", "minimum": 0}, "height": {"type": "number", "minimum": 0}, "depth": {"type": "number", "minimum": 0}, "units": {"enum": ["cm", "m", "in"]}, "axis": {"const": "Y-up"}, "front": {"const": "+Z"}}},
+    "camera": {"type": "object", "required": ["projection", "position", "target", "view"], "properties": {"projection": {"enum": ["perspective", "orthographic"]}, "position": {"$ref": "#/$defs/vector"}, "target": {"$ref": "#/$defs/vector"}, "view": {"type": "string"}}},
+    "environment": {"type": "object", "required": ["background", "lighting"], "properties": {"background": {"type": "string", "pattern": "^#[0-9a-fA-F]{6}$"}, "lighting": {"enum": ["studio", "warm", "dramatic"]}}},
+    "description": {"type": "string"},
+    "hotspots": {"type": "array", "items": {"type": "object"}},
+    "animation": {"type": "object"},
+    "files": {"type": "object", "required": ["model", "manifest", "project", "preview", "instructions"], "properties": {"model": {"const": "model.glb"}, "manifest": {"const": "model-manifest.json"}, "project": {"const": "project.json"}, "preview": {"const": "preview.png"}, "instructions": {"const": "README.txt"}}},
+    "integrity": {"type": "object", "required": ["algorithm", "modelChecksum", "modelBytes"], "properties": {"algorithm": {"const": "SHA-256"}, "modelChecksum": {"type": "string", "pattern": "^[0-9a-f]{64}$"}, "modelBytes": {"type": "integer", "minimum": 28}}}
+  },
+  "$defs": {"vector": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"type": "number"}}}
+}

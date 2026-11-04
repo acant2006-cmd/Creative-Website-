@@ -1,0 +1,13 @@
+import * as THREE from 'three';
+import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+const renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setClearColor('#e7ebdf');document.querySelector('#view').appendChild(renderer.domElement);
+const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(35,1,.01,20000),controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;
+scene.add(new THREE.HemisphereLight(0xfffff0,0x758061,2.5));const key=new THREE.DirectionalLight(0xfff7e1,3);key.position.set(-100,300,300);scene.add(key);const fill=new THREE.DirectionalLight(0xe1efff,1);fill.position.set(200,100,-300);scene.add(fill);
+let model,mixer,playing=false,clips=[];const clock=new THREE.Clock(),loader=new GLTFLoader(),play=document.querySelector('#play'),status=document.querySelector('#status');
+function display(gltf){if(model)scene.remove(model);model=gltf.scene;scene.add(model);clips=gltf.animations;mixer=clips.length?new THREE.AnimationMixer(model):null;clips.forEach(c=>mixer.clipAction(c).play());playing=false;play.disabled=!clips.length;play.textContent='▶ Play animation';const b=new THREE.Box3().setFromObject(model),s=b.getSize(new THREE.Vector3()),center=b.getCenter(new THREE.Vector3());camera.position.copy(center).add(new THREE.Vector3(.5,.18,1).normalize().multiplyScalar(Math.max(s.x,s.y,s.z)*2.2));camera.near=Math.max(.01,Math.max(s.x,s.y,s.z)/100);camera.far=Math.max(100,Math.max(s.x,s.y,s.z)*50);camera.updateProjectionMatrix();controls.target.copy(center);controls.update();let meshes=0;model.traverse(o=>{if(o.isMesh)meshes++});status.textContent=`${meshes} mesh parts · ${clips.length} animation clip${clips.length===1?'':'s'} · Drag to orbit · Scroll to zoom`}
+function error(e){status.textContent='Model could not open: '+e.message;console.error(e)}
+loader.loadAsync(`${import.meta.env.BASE_URL}confirmed/model.glb`).then(display).catch(error);
+play.onclick=()=>{playing=!playing;play.textContent=playing?'Ⅱ Pause animation':'▶ Play animation'};
+document.querySelector('#file').onchange=async e=>{try{const f=e.target.files[0];if(f)display(await loader.parseAsync(await f.arrayBuffer(),''))}catch(err){error(err)}finally{e.target.value=''}};
+function resize(){renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix()}window.addEventListener('resize',resize);resize();renderer.setAnimationLoop(()=>{const dt=clock.getDelta();if(playing)mixer?.update(Math.min(dt,.1));controls.update();renderer.render(scene,camera)});
