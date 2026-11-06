@@ -201,7 +201,7 @@ export default function App() {
               <source src={VIDEO_SCRUB_SRC} type="video/mp4" /><source src={VIDEO_FALLBACK_LOCAL} type="video/mp4" />
             </video>
             <div className="video-shade" />
-            {scrollProgress >= 0.85 && <CoachHero />}
+            {scrollProgress >= 0.7 && <CoachHero opacity={Math.min(1, Math.max(0, (scrollProgress - 0.7) / 0.15))} />}
             <div className="opening-copy" style={{opacity:Math.max(0, 1 - scrollProgress * 4),visibility:scrollProgress >= .25 ? 'hidden' : 'visible'}}>
               <p className="eyebrow">FITNESS, WITH A WAY FORWARD</p>
               <h1>A busy life.<br />A little room<br /><em>for you.</em></h1>

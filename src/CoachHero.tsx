@@ -5,7 +5,7 @@ import './coach.css';
 const asset = (name: string) => `${import.meta.env.BASE_URL}coach/${name}`;
 type Controls = { reset: () => void; zoom: (factor: number) => void; play: (value: boolean) => void; rotate: (horizontal: number, vertical: number) => void; view: (side: boolean) => void };
 
-export default function CoachHero() {
+export default function CoachHero({ opacity = 1 }: { opacity?: number }) {
   const host = useRef<HTMLDivElement>(null);
   const controls = useRef<Controls | null>(null);
   const [status, setStatus] = useState<'loading' | 'ready' | 'fallback'>('loading');
@@ -157,7 +157,7 @@ export default function CoachHero() {
 
   const reset = () => { controls.current?.reset(); setPlaying(false); setSide(false); };
   const fallback = staticMode || status === 'fallback';
-  return <aside className="coach-hero" aria-label="Meet the Threshold Fit coach">
+  return <aside className="coach-hero" style={{ opacity, pointerEvents: opacity > 0 ? 'auto' : 'none' }} aria-hidden={opacity === 0} aria-label="Meet the Threshold Fit coach">
     <div className="coach-heading"><span className="coach-dot" /><span>YOUR CORNER. YOUR COACH.</span><span className="coach-edition">01 / THRESHOLD FIT</span></div>
     <div className="coach-stage" tabIndex={status === 'ready' && !fallback ? 0 : -1} role="group" aria-label={fallback ? 'Static preview of the Threshold Fit lifting coach' : 'Interactive lifting coach. Drag to rotate. Arrow keys rotate, plus and minus zoom, Home resets.'}
       onKeyDown={event => {
