@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "1.0.0",
+  "handoffVersion": 3,
+  "projectName": "Threshold Fit coach",
+  "modelName": "Threshold Fit lifting coach",
+  "modelType": "Mascot",
+  "confirmedAt": "2026-11-04T19:36:43.685Z",
+  "dimensions": {
+    "width": 125.6922738210508,
+    "height": 180.00000000000006,
+    "depth": 38.57452422319098,
+    "units": "cm",
+    "axis": "Y-up",
+    "front": "+Z",
+    "measurement": "Axis-aligned bounds of the current pose; animation may change bounds."
+  },
+  "camera": {
+    "projection": "perspective",
+    "position": [
+      174.62649389807387,
+      174.4966905958422,
+      284.0394545804659
+    ],
+    "target": [
+      0,
+      90.00000000000003,
+      2.3838192609919204
+    ],
+    "view": "iso"
+  },
+  "environment": {
+    "background": "#e7ebdf",
+    "lighting": "studio"
+  },
+  "description": "A friendly lifting coach for Threshold Fit: strength, nutrition and balance.",
+  "hotspots": [],
+  "animation": {
+    "clips": [
+      {
+        "name": "Supportive coach · double 100 LB curl · 4.8 second loop",
+        "duration": 4.800000190734863
+      }
+    ],
+    "previewTime": 0,
+    "modelBasePose": "Animation rest pose"
+  },
+  "files": {
+    "model": "model.glb",
+    "manifest": "model-manifest.json",
+    "project": "project.json",
+    "preview": "preview.png",
+    "instructions": "README.txt"
+  },
+  "integrity": {
+    "algorithm": "SHA-256",
+    "modelChecksum": "ae3de9273220c71f7a36eb4cf9a69a02db90fdf9f40b9078d363e809f4ae5442",
+    "modelBytes": 5534028
+  }
+}

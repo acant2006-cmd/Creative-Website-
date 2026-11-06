@@ -20,6 +20,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Validate confirmed Mission 3 coach
+        run: node scripts/validate-coach.mjs
       - name: Build and validate Mission 2 studio
         run: |
           npx --yes pnpm@11.25.0 --dir mission-2-studio install --frozen-lockfile --ignore-scripts
